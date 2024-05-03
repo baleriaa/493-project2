@@ -1,10 +1,23 @@
+require('dotenv').config();
+
 const express = require('express');
 const morgan = require('morgan');
+const { MongoClient } = require('mongodb');
 
 const api = require('./api');
 
 const app = express();
 const port = process.env.PORT || 8000;
+
+const mongoHost = process.env.MONGO_HOST;
+const mongoPort = process.env.MONGO_PORT || 27017;
+const mongoUser = process.env.MONGO_USER;
+const mongoPassword = process.env.MONGO_PASSWORD;
+const mongoDBName = process.env.MONGO_DB_NAME;
+
+const mongoURL = `mongodb://${mongoUser}:${mongoPassword}@${mongoHost}:${mongoPort}/${mongoDBName}`;
+
+let db = null;
 
 /*
  * Morgan is a popular logger.
@@ -38,6 +51,10 @@ app.use('*', function (err, req, res, next) {
   })
 })
 
-app.listen(port, function() {
-  console.log("== Server is running on port", port);
+MongoClient.connect(mongoURL).then(function (client) {
+  db = client.db(mongoDBName);
+
+  app.listen(port, function () {
+      console.log("== Server listening on port", port);
+  });
 });
